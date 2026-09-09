@@ -2,6 +2,8 @@
 
 Sistema em Streamlit para organizar planilhas de chegadas e partidas de missionários, combinando dados de uma planilha de voos com informações da master do CTM.
 
+> **Aviso de uso:** este é um sistema privado e de uso restrito. O uso, cópia, distribuição ou modificação dependem de autorização prévia. Consulte [LICENSE.md](LICENSE.md).
+
 ## Funcionalidades
 
 - Seleção entre os fluxos **Chegadas** e **Partidas**.

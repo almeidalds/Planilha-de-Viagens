@@ -66,7 +66,7 @@ st.markdown("""
     div[data-testid="stDataFrame"] { border: 1px solid #d8e1e8; border-radius: 8px; }
 </style>
 """, unsafe_allow_html=True)
-
+# abaixo, coloque o caminho da pastar como abaixo!
 PASTA_BASE = Path(r"C:\Users\Almeidalds\OneDrive - Church of Jesus Christ\Paulo Cezar Sousa's files - Planilha de Viagens - (PYTHON, NÃO MEXE AMIGA)")
 PASTA_VOOS = PASTA_BASE / "voo_semanais"
 LOGO_PATH = Path(__file__).with_name("logo.png")

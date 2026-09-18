@@ -25,16 +25,22 @@ def aplicar_design(df, modo):
     """Filtra e ordena as colunas para o modelo de design escolhido."""
     colunas_alvo = COLUNAS_CHEGADAS if modo == "Chegadas" else COLUNAS_PARTIDAS
     cols_existentes = [c for c in colunas_alvo if c in df.columns]
-    return df[cols_existentes].copy()
+    resultado = df[cols_existentes].copy()
+    # Identificadores e voos podem vir como números ou textos na origem.
+    for coluna in resultado.columns:
+        if coluna != "Quant.":
+            resultado[coluna] = resultado[coluna].map(
+                lambda valor: "" if pd.isna(valor) else str(valor)
+            )
+    return resultado
 
 def aplicar_cores_e_salvar(df, caminho_arquivo, modo):
     """
     Pinta, mescla as células agrupadas e formata a planilha do Excel exatamente nos moldes anexados.
     """
-    # Ordena os voos para que os missionários do mesmo voo fiquem juntos
+    # Preserva a ordem exibida sem alterar os dados originais.
+    df = df.copy()
     col_agrupamento = "Chegada" if modo == "Chegadas" else "Partida"
-    if "Voo" in df.columns and col_agrupamento in df.columns:
-        df = df.sort_values(by=["Voo", col_agrupamento])
         
     wb = openpyxl.Workbook()
     ws = wb.active
@@ -89,7 +95,7 @@ def aplicar_cores_e_salvar(df, caminho_arquivo, modo):
     start_data_row = 4
     for r_idx, row in enumerate(df.values, start_data_row):
         for c_idx, val in enumerate(row, 1):
-            cell = ws.cell(row=r_idx, column=c_idx, value=val)
+            cell = ws.cell(row=r_idx, column=c_idx, value=None if pd.isna(val) else val)
             cell.font = font_data
             cell.border = border_thin
             # Nomes e locais ficam alinhados à esquerda para melhor leitura
@@ -123,11 +129,14 @@ def aplicar_cores_e_salvar(df, caminho_arquivo, modo):
         grupos.append((indice_inicio, len(df)-1))
         
         for (inicio, fim) in grupos:
-            if inicio != fim:
+            if inicio < fim:
                 excel_start = inicio + start_data_row
                 excel_end = fim + start_data_row
                 for c_idx in col_indices_to_merge:
-                    ws.merge_cells(start_row=excel_start, start_column=c_idx, end_row=excel_end, end_column=c_idx)
+                    # Mesclar valores diferentes apagaria dados dos demais passageiros.
+                    valores = df.iloc[inicio:fim + 1, c_idx - 1].fillna("").astype(str)
+                    if valores.nunique(dropna=False) == 1:
+                        ws.merge_cells(start_row=excel_start, start_column=c_idx, end_row=excel_end, end_column=c_idx)
                     
     # 6. AJUSTE AUTOMÁTICO DE LARGURA DE COLUNAS (CORRIGIDO)
     for c_idx, col in enumerate(ws.columns, 1):

@@ -14,7 +14,7 @@ import pandas as pd
 import requests
 from datetime import date
 
-from modelos import aplicar_design, normalizar_texto
+from modelos import aplicar_design, aplicar_cores_e_salvar, normalizar_texto
 from logistica import definir_transporte
 
 st.set_page_config(page_title="Viagens | CTM", layout="wide")
@@ -327,7 +327,7 @@ if st.sidebar.button("Processar Dados", type="primary"):
 
 # --- EXIBIÇÃO ---
 if 'resultado' in st.session_state:
-    df = st.session_state['resultado']
+    df = aplicar_design(st.session_state['resultado'], st.session_state['modo'])
     st.subheader(f"{st.session_state['modo']} - modo de visualização")
     
     if "Transportes" in df.columns:
@@ -345,8 +345,12 @@ if 'resultado' in st.session_state:
     
     st.dataframe(df, use_container_width=True, height=450)
     
-    saida = PASTA_BASE / f"{st.session_state['modo']}_Final_Logistica.xlsx"
-    if st.button("Exportar Planilha Oficial (Formatada)", type="primary"):
-        from modelos import aplicar_cores_e_salvar
-        aplicar_cores_e_salvar(df, saida, st.session_state['modo'])
-        st.success(f"Arquivo salvo com sucesso!")
+    arquivo_excel = io.BytesIO()
+    aplicar_cores_e_salvar(df, arquivo_excel, st.session_state['modo'])
+    st.download_button(
+        "Exportar Planilha Oficial (Formatada)",
+        data=arquivo_excel.getvalue(),
+        file_name=f"{st.session_state['modo']}_Final_Logistica.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        type="primary",
+    )
